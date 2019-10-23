@@ -1,6 +1,7 @@
 package lesson1
 
 import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.assertThrows
 import util.PerfResult
 import util.estimate
 import java.io.BufferedWriter
@@ -45,9 +46,32 @@ abstract class AbstractTaskTests : AbstractFileTests() {
         } finally {
             File("temp.txt").delete()
         }
+        //Дополнительный тест
+        try {
+            assertThrows<Exception>("Incorrect format") {
+                sortTimes("input/mytime_in1.txt", "temp.txt")
+            }
+        } finally {
+            File("temp.txt").delete()
+        }
+        try {
+            sortTimes("input/mytime_in2.txt", "temp.txt")
+            assertFileContent("temp.txt", File("input/mytime_out2.txt").readLines())
+        } finally {
+            File("temp.txt").delete()
+        }
+        //
     }
 
     protected fun sortAddresses(sortAddresses: (String, String) -> Unit) {
+        //Дополнительный тест
+        try {
+            sortAddresses("input/myaddr_in1.txt", "temp.txt")
+            assertFileContent("temp.txt", File("input/myaddr_out1.txt").readLines())
+        } finally {
+            File("temp.txt").delete()
+        }
+        //
         try {
             sortAddresses("input/addr_in1.txt", "temp.txt")
             assertFileContent(
@@ -137,6 +161,32 @@ abstract class AbstractTaskTests : AbstractFileTests() {
         }
 
         println("sortTemperatures: $perf")
+        //Дополнительный тест
+        try {
+            sortTemperatures("input/mytemp_in1.txt", "temp.txt")
+            assertFileContent(
+                "temp.txt",
+                """
+                    -112.6
+                    -99.7
+                    -98.5
+                    -12.6
+                    11.0
+                    12.3
+                    19.1
+                    64.0
+                    67.5
+                    99.8
+                    99.9
+                    112.5
+                    121.5
+                    124.7
+                """.trimIndent()
+            )
+        } finally {
+            File("temp.txt").delete()
+        }
+        //
     }
 
     private fun generateSequence(totalSize: Int, answerSize: Int): PerfResult<Unit> {
@@ -326,7 +376,12 @@ abstract class AbstractTaskTests : AbstractFileTests() {
         val result = arrayOf(null, null, null, null, null, 1, 3, 9, 13, 18, 23)
         mergeArrays(arrayOf(4, 9, 15, 20, 23), result)
         assertArrayEquals(arrayOf(1, 3, 4, 9, 9, 13, 15, 18, 20, 23, 23), result)
-
+        //Дополнительный тесты
+        mergeArrays(Array(0) { 0 }, Array(0) { 1 })
+        val target = Array<Int?>(10) { 1 }
+        mergeArrays(Array(9) { 3 }, target)
+        assertArrayEquals(arrayOf(1, 3, 3, 3, 3, 3, 3, 3, 3, 3), target)
+        //
         fun testGeneratedArrays(
             firstSize: Int,
             secondSize: Int

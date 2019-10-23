@@ -2,6 +2,10 @@
 
 package lesson1
 
+import java.io.File
+import java.util.*
+import kotlin.math.*
+
 /**
  * Сортировка времён
  *
@@ -32,9 +36,40 @@ package lesson1
  *
  * В случае обнаружения неверного формата файла бросить любое исключение.
  */
+// N - количество строк во входном файле
+// Ресурсоемкость - O(N)
+// Трудоемкость - O(N log2N)
 fun sortTimes(inputName: String, outputName: String) {
-    TODO()
+    File(outputName).bufferedWriter().use {
+        val file = File(inputName).readLines().map {
+            if (!Regex("""((1[0-2])|(0\d)):(\d\d):(\d\d) ((AM)|(PM))""").matches(it))
+                throw Exception("Inc. Format")
+            val parts = it.split(" ")
+            val timeParts = parts[0].split(":")
+            val hours = timeParts[0].toInt()
+            val minutes = timeParts[1].toInt()
+            val seconds = timeParts[2].toInt()
+            val period = parts[1]
+            if (hours !in 0..12 || minutes !in 0..59 || seconds !in 0..59) throw Exception("Inc. Format")
+            Time(hours, minutes, seconds, period) to it
+        }
+        val result = file.sortedWith(
+            compareBy(
+                { it.first.period },
+                { it.first.hours % 12 },
+                { it.first.minutes },
+                { it.first.seconds })
+        )
+        it.write(result.joinToString("\n") { it.second })
+    }
 }
+data class Time(
+    var hours: Int,
+    var minutes: Int,
+    var seconds: Int,
+    var period: String
+)
+
 
 /**
  * Сортировка адресов
@@ -62,8 +97,26 @@ fun sortTimes(inputName: String, outputName: String) {
  *
  * В случае обнаружения неверного формата файла бросить любое исключение.
  */
+// N - количество строк во входном файле
+// Ресурсоемкость - O(N)  Трудоемкость - O(2N * log(N))
 fun sortAddresses(inputName: String, outputName: String) {
-    TODO()
+    File(outputName).bufferedWriter().use {
+        val address = sortedMapOf<String, SortedMap<Int, MutableList<String>>>()// O(s*m*k)
+        File(inputName).readLines().forEach {
+            if (!Regex("""[A-zА-яёЁ]+ [A-zА-яёЁ]+ - [A-zА-яёЁ-]+ \d+""").matches(it))
+                throw Exception("Inc. Format")
+            val lineParts = it.split(" ")
+            address.getOrPut(lineParts[3], { sortedMapOf() })
+                .getOrPut(lineParts[4].toInt(), { mutableListOf() })
+                .add(lineParts[0] + " " + lineParts[1])
+        }//O(N * log(s * m)) - вероятно это можно также определить как O(2N * log(N))
+        //Т.к. соотносительное затрачиваемое логорифмическое время примерно одинаково
+        for (street in address)
+            for (number in street.value) {
+                it.write(street.key + " " + number.key + " - " + number.value.sorted().joinToString(", "))
+                it.newLine()
+            }
+    }
 }
 
 /**
@@ -96,8 +149,28 @@ fun sortAddresses(inputName: String, outputName: String) {
  * 99.5
  * 121.3
  */
+// N - количество строк во входном файле
+// Трудоёмкость - O(N)
+// Ресурсоёмкость - O(N)
+const val tempLimit = 7731
+const val tempAbsMinLimit = 2730
 fun sortTemperatures(inputName: String, outputName: String) {
-    TODO()
+    val temp = IntArray(tempLimit)
+    File(outputName).bufferedWriter().use {
+        File(inputName).readLines().forEach {
+            if (!Regex("""-?\d+.\d""").matches(it))
+                throw Exception("Inc. Format")
+            val tempValue = it.replace(".", "").toInt() + tempAbsMinLimit
+            temp[tempValue]++
+        }
+        for (i in 0 until tempLimit)
+            while (temp[i] > 0) {
+                val result = i - tempAbsMinLimit
+                it.write("-".takeIf { (result < 0) }.orEmpty() + "${abs(result) / 10}.${abs(result) % 10}")
+                it.newLine()
+                temp[i]--
+            }
+    }
 }
 
 /**
@@ -147,7 +220,24 @@ fun sortSequence(inputName: String, outputName: String) {
  *
  * Результат: second = [1 3 4 9 9 13 15 20 23 28]
  */
+// N - количество строк во входном файле
+// Трудоёмкость - O(N)
+// Ресурсоёмкость - O(1) или O(N)
 fun <T : Comparable<T>> mergeArrays(first: Array<T>, second: Array<T?>) {
-    TODO()
+    var firstIndicate = 0
+    var secondIndicate = first.size
+    for (num in second.indices) {
+        if (!first.isNullOrEmpty() && !second.isNullOrEmpty()) {
+            if (secondIndicate >= second.size ||
+                first.size > firstIndicate &&
+                first[firstIndicate] <= second[secondIndicate]!!) {
+                second[num] = first[firstIndicate]
+                firstIndicate++
+            } else {
+                second[num] = second[secondIndicate]
+                secondIndicate++
+            }
+        } else throw Exception("Empty Array")
+    }
 }
 
