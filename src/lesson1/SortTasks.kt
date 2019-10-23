@@ -98,10 +98,11 @@ data class Time(
  * В случае обнаружения неверного формата файла бросить любое исключение.
  */
 // N - количество строк во входном файле
-// Ресурсоемкость - O(N)  Трудоемкость - O(2N * log(N))
+// Ресурсоемкость - O(N)
+// Трудоемкость - O(2N * log(N))
 fun sortAddresses(inputName: String, outputName: String) {
     File(outputName).bufferedWriter().use {
-        val address = sortedMapOf<String, SortedMap<Int, MutableList<String>>>()// O(s*m*k)
+        val address = sortedMapOf<String, SortedMap<Int, MutableList<String>>>()
         File(inputName).readLines().forEach {
             if (!Regex("""[A-zА-яёЁ]+ [A-zА-яёЁ]+ - [A-zА-яёЁ-]+ \d+""").matches(it))
                 throw Exception("Inc. Format")
@@ -110,7 +111,7 @@ fun sortAddresses(inputName: String, outputName: String) {
                 .getOrPut(lineParts[4].toInt(), { mutableListOf() })
                 .add(lineParts[0] + " " + lineParts[1])
         }//O(N * log(s * m)) - вероятно это можно также определить как O(2N * log(N))
-        //Т.к. соотносительное затрачиваемое логорифмическое время примерно одинаково
+        //Т.к. соотносительное затрачиваемое логорифмическое время будет примерно одинаково
         for (street in address)
             for (number in street.value) {
                 it.write(street.key + " " + number.key + " - " + number.value.sorted().joinToString(", "))

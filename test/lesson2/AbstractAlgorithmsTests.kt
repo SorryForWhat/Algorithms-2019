@@ -58,6 +58,14 @@ abstract class AbstractAlgorithmsTests {
         } finally {
             File("temp_prices.txt").delete()
         }
+        //Доп. Тест
+        try {
+            val expectedAnswer = generatePrices(2)
+            assertEquals(expectedAnswer, optimizeBuyAndSell("temp_prices.txt"))
+        } finally {
+            File("temp_prices.txt").delete()
+        }
+        //
     }
 
     fun josephTask(josephTask: (Int, Int) -> Int) {
@@ -66,6 +74,10 @@ abstract class AbstractAlgorithmsTests {
         assertEquals(50000000, josephTask(50000000, 1))
         assertEquals(3, josephTask(8, 5))
         assertEquals(28, josephTask(40, 3))
+        //Доп. Тест
+        assertEquals(609, josephTask(999, 1000))
+        assertEquals(1, josephTask(1, 9999999))
+        //
         var menNumber = 2
         for (i in 1..20) {
             assertEquals(1, josephTask(menNumber, 2))
@@ -120,6 +132,16 @@ abstract class AbstractAlgorithmsTests {
                 File("input/ruslan_ludmila_2.txt").readText()
             ).trim()
         )
+        //Доп. Тест
+        assertEquals("Человек", longestCommonSubstring("Человек", "Человек"))
+        assertEquals(
+            "превысокомногорассмотрительствующи",
+            longestCommonSubstring(
+                "превысокомногорассмотрительствующие",
+                "превысокомногорассмотрительствующий"
+            )
+        )
+        //
     }
 
     fun calcPrimesNumber(calcPrimesNumber: (Int) -> Int) {
@@ -144,6 +166,9 @@ abstract class AbstractAlgorithmsTests {
         assertEquals(148933, calcPrimesNumber(2000000))
         assertEquals(348513, calcPrimesNumber(5000000))
         assertEquals(664579, calcPrimesNumber(10000000))
+        // Доп. Тест
+        assertEquals(159085, calcPrimesNumber(2147483))
+        //
     }
 
     fun baldaSearcher(baldaSearcher: (String, Set<String>) -> Set<String>) {
