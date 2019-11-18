@@ -61,9 +61,21 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
     /**
      * Удаление элемента в дереве
      * Средняя
+     *
+     * // N - количество узлов (высота) дерева
+     * // Ресурсоемкость - O(N)
+     * // Трудоемкость - O(N)
      */
     override fun remove(element: T): Boolean {
-        TODO()
+        val compareElement: Boolean
+        val closest = find(element)
+        if (closest != null) {
+            element.compareTo(closest.value)
+            compareElement = true
+        } else return false
+        if (!compareElement)
+            return false
+        return remove(closest)
     }
 
     override operator fun contains(element: T): Boolean {
@@ -71,8 +83,70 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
         return closest != null && element.compareTo(closest.value) == 0
     }
 
-    private fun find(value: T): Node<T>? =
-        root?.let { find(it, value) }
+    private fun remove(closest: Node<T>): Boolean {
+        val parent = findParent(closest)
+        val closestLeft = closest.left
+        val closestRight = closest.right
+        val parentLeft = parent?.left
+        val parentRight = parent?.right
+        if ((closestLeft == null) and (closestRight == null)) {
+            when {
+                parent == null -> root = null
+                parentLeft == closest -> parent.left = null
+                parentRight == closest -> parent.right = null
+            }
+            size--
+        } else if ((closestLeft != null) and (closestRight == null)) {
+            when {
+                parent == null -> root = closest.left
+                parentLeft == closest -> parent.left = closest.left
+                parentRight == closest -> parent.right = closest.left
+            }
+            size--
+        } else if ((closestLeft == null) and (closestRight != null)) {
+            when {
+                parent == null -> root = closest.right
+                parentLeft == closest -> parent.left = closest.right
+                parentRight == closest -> parent.right = closest.right
+            }
+            size--
+        } else if ((closestLeft != null) and (closestRight != null)) {
+            var lastAllowed = closest.right
+            var lastAllowedToMove = false
+            while (lastAllowed?.left != null) {
+                lastAllowed = lastAllowed.left
+                if (lastAllowed?.right != null)
+                    lastAllowedToMove = true
+            }
+            val replacementNodeParent = findParent(lastAllowed!!)
+            when {
+                parent == null -> root = lastAllowed
+                parentLeft == closest -> parent.left = lastAllowed
+                parentRight == closest -> parent.right = lastAllowed
+            }
+            lastAllowed.left = closest.left
+            if (lastAllowed != closest.right) {
+                if (lastAllowedToMove)
+                    replacementNodeParent?.left = lastAllowed.right
+                else
+                    replacementNodeParent?.left = null
+                lastAllowed.right = closest.right
+            }
+            size--
+        }
+        return true
+    }
+
+    private var firstElement: T? = null
+    private var lastElement: T? = null
+
+    private fun find(value: T): Node<T>? {
+        return when {
+            lastElement != null && (firstElement!! > value || lastElement!! <= value) && firstElement != null -> null
+            lastElement != null && lastElement!! <= value || firstElement != null && lastElement!! > value -> null
+            else -> root?.let { find(it, value) }
+        }
+    }
 
     private fun find(start: Node<T>, value: T): Node<T> {
         val comparison = value.compareTo(start.value)
@@ -83,32 +157,90 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
         }
     }
 
+    private fun findParent(node: Node<T>): Node<T>? =
+        root?.let { findParent(it, null, node.value) }
+
+    private fun findParent(start: Node<T>, parent: Node<T>?, value: T): Node<T>? {
+        val comparison = value.compareTo(start.value)
+        return when {
+            comparison < 0 -> start.left?.let { findParent(it, start, value) } ?: parent
+            comparison == 0 -> parent
+            comparison > 0 -> start.right?.let { findParent(it, start, value) } ?: parent
+            else -> throw NoSuchElementException()
+        }
+    }
+
+
     inner class BinaryTreeIterator internal constructor() : MutableIterator<T> {
+
+        private var current = root
+        private val visited = mutableSetOf<Node<T>>()
+
         /**
          * Проверка наличия следующего элемента
          * Средняя
+         * // N - количество узлов дерева
+         * // Ресурсоемкость - O(1)
+         * // Трудоемкость - O(N)
          */
         override fun hasNext(): Boolean {
-            // TODO
-            throw NotImplementedError()
+            var currentRoot = root
+            if (currentRoot?.right != null)
+                currentRoot = currentRoot.right
+            return currentRoot != current
         }
 
         /**
          * Поиск следующего элемента
          * Средняя
+         * // N - количество узлов дерева
+         * // Ресурсоемкость - O(N)
+         * // Трудоемкость - O(N)
          */
+        private fun nextAllowedNote(
+            currentNode: Node<T>?,
+            visited: MutableSet<Node<T>>
+        ): Pair<Node<T>?, MutableSet<Node<T>>> {
+            var lastAllowed: Node<T>?
+            val currentNodeLeft = currentNode?.left
+            val currentNodeRight = currentNode?.right
+            when {
+                (currentNodeLeft != null).and(currentNodeLeft !in visited) -> {
+                    lastAllowed = currentNode
+                    while (lastAllowed?.left != null) lastAllowed = lastAllowed.left
+                }
+                currentNode !in visited -> lastAllowed = currentNode
+                (currentNodeRight != null).and(currentNodeRight !in visited) -> {
+                    lastAllowed = currentNodeRight
+                    while (lastAllowed?.left != null) lastAllowed = lastAllowed.left
+                }
+                else -> {
+                    if (currentNode == last()) return Pair(null, visited)
+                    lastAllowed = currentNode
+                    while (lastAllowed in visited) lastAllowed = findParent(lastAllowed!!)
+                }
+            }
+            lastAllowed.run {
+                visited.add(this!!)
+            }
+            return lastAllowed to visited
+        }
+
         override fun next(): T {
-            // TODO
-            throw NotImplementedError()
+            val nextNodeData = nextAllowedNote(current, visited)
+            current = nextNodeData.first
+            visited.addAll(nextNodeData.second)
+            return nextNodeData.first!!.value
         }
 
         /**
          * Удаление следующего элемента
          * Сложная
+         * // Ресурсоемкость - O(1)
+         * // Трудоемкость - O(1)
          */
         override fun remove() {
-            // TODO
-            throw NotImplementedError()
+            remove(find(current!!.value)!!)
         }
     }
 

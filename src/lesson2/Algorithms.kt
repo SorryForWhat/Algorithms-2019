@@ -46,7 +46,7 @@ fun optimizeBuyAndSell(inputName: String): Pair<Int, Int> {
         if (income[i] < income[tempIndex]) tempIndex = i
         val tempIncome = Pair(tempIndex, i)
         val resTempIncome = income[tempIncome.second] - income[tempIncome.first]
-        val resBestIncome = income[bestIncome.second] - income[bestIncome.first]
+        val  resBestIncome = income[bestIncome.second] - income[bestIncome.first]
         if (resBestIncome < resTempIncome) bestIncome = tempIncome
     }
     bestIncome = Pair(bestIncome.first + 1, bestIncome.second + 1)
