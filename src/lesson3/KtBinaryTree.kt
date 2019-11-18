@@ -272,7 +272,7 @@ class KtBinaryTree<T : Comparable<T>>() : AbstractMutableSet<T>(), CheckableSort
          * // Трудоемкость - O(1)
          */
         override fun remove() {
-            remove(find(current!!.value)!!)
+            remove(find(current!!.value)!!) //Не работает (перегружает память)
         }
     }
 
@@ -283,6 +283,10 @@ class KtBinaryTree<T : Comparable<T>>() : AbstractMutableSet<T>(), CheckableSort
     /**
      * Найти множество всех элементов в диапазоне [fromElement, toElement)
      * Очень сложная
+     * H - глубина, на которой находится первый элемент
+     * N - кол-во элементов
+     * // Ресурсоемкость - O(H*log N)
+     * // Трудоемкость - O(H)
      */
     private val newSubTree = mutableListOf<KtBinaryTree<T>>()
     private var max: T? = null
@@ -322,12 +326,18 @@ class KtBinaryTree<T : Comparable<T>>() : AbstractMutableSet<T>(), CheckableSort
     /**
      * Найти множество всех элементов меньше заданного
      * Сложная
+     * N - кол-во элементов
+     * // Ресурсоемкость - O(1)
+     * // Трудоемкость - O(N)
      */
     override fun headSet(toElement: T): SortedSet<T> = newSubTree(null, toElement)
 
     /**
-     * Найти множество всех элементов больше или равных заданного
+     * Найти множество всех элементов меньше заданного
      * Сложная
+     * N - кол-во элементов
+     * // Ресурсоемкость - O(1)
+     * // Трудоемкость - O(N)
      */
     override fun tailSet(fromElement: T): SortedSet<T> = newSubTree(fromElement, null)
 
