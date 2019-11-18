@@ -22,9 +22,7 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
     override fun add(element: T): Boolean {
         val closest = find(element)
         val comparison = if (closest == null) -1 else element.compareTo(closest.value)
-        if (comparison == 0) {
-            return false
-        }
+        if (comparison == 0) return false
         val newNode = Node(element)
         when {
             closest == null -> root = newNode
@@ -144,7 +142,7 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
         return when {
             lastElement != null && (firstElement!! > value || lastElement!! <= value) && firstElement != null -> null
             lastElement != null && lastElement!! <= value || firstElement != null && lastElement!! > value -> null
-            else -> root?.let { find(it, value) }
+            else -> root?.run { find(this, value) }
         }
     }
 
@@ -152,20 +150,20 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
         val comparison = value.compareTo(start.value)
         return when {
             comparison == 0 -> start
-            comparison < 0 -> start.left?.let { find(it, value) } ?: start
-            else -> start.right?.let { find(it, value) } ?: start
+            comparison < 0 -> start.left?.run { find(this, value) } ?: start
+            else -> start.right?.run { find(this, value) } ?: start
         }
     }
 
     private fun findParent(node: Node<T>): Node<T>? =
-        root?.let { findParent(it, null, node.value) }
+        root?.run { findParent(this, null, node.value) }
 
     private fun findParent(start: Node<T>, parent: Node<T>?, value: T): Node<T>? {
         val comparison = value.compareTo(start.value)
         return when {
-            comparison < 0 -> start.left?.let { findParent(it, start, value) } ?: parent
+            comparison < 0 -> start.left?.run { findParent(this, start, value) } ?: parent
             comparison == 0 -> parent
-            comparison > 0 -> start.right?.let { findParent(it, start, value) } ?: parent
+            comparison > 0 -> start.right?.run { findParent(this, start, value) } ?: parent
             else -> throw NoSuchElementException()
         }
     }
