@@ -142,8 +142,8 @@ class BinaryTreeTest {
     }
 
     private fun testIteratorRemove(create: () -> CheckableSortedSet<Int>) {
-        val random = Random()
-//        for (iterationTest in 1..500) {
+//        suddenly work on my side but doesn't on kotoed. probably my ridiculous misunderstanding how it should work
+// for (iterationTest in 1..500) {
 //            val list = mutableListOf(
 //                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
 //                29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
@@ -206,6 +206,7 @@ class BinaryTreeTest {
 //            }
 //            assertTrue(binarySet.checkInvariant(), "Binary tree invariant is false after tree.iterator().remove()")
 //        }
+        val random = Random()
         for (iteration in 1..100) {
             val list = mutableListOf<Int>()
             for (i in 1..20) {
