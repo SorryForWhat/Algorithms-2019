@@ -5,7 +5,7 @@ import kotlin.NoSuchElementException
 import kotlin.math.max
 
 // Attention: comparable supported but comparator is not
-class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSortedSet<T> {
+class KtBinaryTree<T : Comparable<T>>() : AbstractMutableSet<T>(), CheckableSortedSet<T> {
 
     private var root: Node<T>? = null
 
@@ -19,9 +19,43 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
         var right: Node<T>? = null
     }
 
+    //
+//   fun addVisited (element: T): Boolean {
+//        val closest = find(element)
+//        val comparison = if (closest == null) -1 else element.compareTo(closest.value)
+//        if (comparison == 0) return false
+//        val newNode = Node(element)
+//        when {
+//            closest == null -> root = newNode
+//            comparison < 0 -> {
+//                assert(closest.left == null)
+//                closest.left = newNode
+//            }
+//            else -> {
+//                assert(closest.right == null)
+//                closest.right = newNode
+//            }
+//        }
+//        size++
+//        return true
+//    }
     override fun add(element: T): Boolean {
+        val result = addVisited(element)
+        for (it in newSubTree) {
+            if ((it.min != null && element >= it.min!!) || it.min == null) {
+                if ((it.max != null && element < it.max!!) || it.max == null) {
+                    it.addVisited(element)
+                }
+            }
+        }
+        return result
+    }
+
+    private fun addVisited(element: T): Boolean {
+        require(!(min != null && element < min!!))
+        require(!(max != null && element >= max!!))
         val closest = find(element)
-        val comparison = if (closest == null) -1 else element.compareTo(closest.value)
+        val comparison = if (closest != null) element.compareTo(closest.value) else -1
         if (comparison == 0) return false
         val newNode = Node(element)
         when {
@@ -250,25 +284,52 @@ class KtBinaryTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSorted
      * Найти множество всех элементов в диапазоне [fromElement, toElement)
      * Очень сложная
      */
-    override fun subSet(fromElement: T, toElement: T): SortedSet<T> {
-        TODO()
+    private val newSubTree = mutableListOf<KtBinaryTree<T>>()
+    private var max: T? = null
+    private var min: T? = null
+
+    constructor(elementMin: T?, elementMax: T?) : this() {
+        max = elementMax
+        min = elementMin
+    }
+
+    override fun subSet(fromElement: T, toElement: T): SortedSet<T> = newSubTree(fromElement, toElement)
+
+    private fun newSubTree(fromElement: T?, toElement: T?): SortedSet<T> {
+        val newTree = KtBinaryTree(fromElement, toElement)
+        if (root != null) {
+            subTreeConstructor(root!!, fromElement, toElement, newTree)
+            newSubTree.add(newTree)
+            newTree.newSubTree.add(this)
+        }
+        return newTree
+    }
+
+    private fun subTreeConstructor(current: Node<T>, fromElement: T?, toElement: T?, tree: KtBinaryTree<T>) {
+        val firstElement = fromElement == null || current.value >= fromElement
+        val secondElement = toElement == null || current.value < toElement
+        val currentLeft = current.left
+        val currentRight = current.right
+        if (firstElement && secondElement) {
+            if (currentLeft != null) subTreeConstructor(currentLeft, fromElement, toElement, tree)
+            if (currentRight != null) subTreeConstructor(currentRight, fromElement, toElement, tree)
+            tree.add(current.value)
+        } else if (firstElement && !secondElement) {
+            if (currentLeft != null) subTreeConstructor(currentLeft, fromElement, toElement, tree)
+        } else if (currentRight != null) subTreeConstructor(currentRight, fromElement, toElement, tree)
     }
 
     /**
      * Найти множество всех элементов меньше заданного
      * Сложная
      */
-    override fun headSet(toElement: T): SortedSet<T> {
-        TODO()
-    }
+    override fun headSet(toElement: T): SortedSet<T> = newSubTree(null, toElement)
 
     /**
      * Найти множество всех элементов больше или равных заданного
      * Сложная
      */
-    override fun tailSet(fromElement: T): SortedSet<T> {
-        TODO()
-    }
+    override fun tailSet(fromElement: T): SortedSet<T> = newSubTree(fromElement, null)
 
     override fun first(): T {
         var current: Node<T> = root ?: throw NoSuchElementException()
